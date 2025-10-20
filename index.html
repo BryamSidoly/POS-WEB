@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Limber POS - Teste</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#b91c1c" />
+
+  <style>
+    /* Estilo simples inspirado na foto (cores, grid com botões vermelhos) */
+    :root {
+      --red: #c62828;
+      --red-dark: #9b1b1b;
+      --bg: #f6f6f7;
+      --card: #ffffff;
+      --muted: #8a8a8a;
+    }
+    html,body { height:100%; margin:0; font-family: Inter, Arial, sans-serif; background:var(--bg); }
+    .wrap { max-width:420px; margin:20px auto; padding:12px; }
+    .panel { background:var(--card); border-radius:18px; padding:16px; box-shadow:0 6px 18px rgba(0,0,0,0.08); }
+    .header { display:flex; justify-content:space-between; align-items:center; }
+    .brand { font-weight:700; color:#4b5563; }
+    .testing { font-size:12px; background:#111827; color:#f3f4f6; padding:6px 10px; border-radius:6px; }
+    h1 { text-align:center; margin:14px 0 4px; font-size:22px; }
+    p.lead { text-align:center; color:var(--muted); margin:0 0 12px; font-size:13px; }
+
+    .grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
+    .tile { background:var(--red); color:white; border-radius:10px; padding:12px; font-weight:600; min-height:64px; display:flex; align-items:center; justify-content:flex-start; cursor:pointer; box-shadow:0 3px 8px rgba(0,0,0,0.08); }
+    .tile small { display:block; font-weight:400; font-size:12px; opacity:0.95; }
+
+    .controls { margin-top:14px; display:flex; gap:8px; flex-direction:column; }
+    .row { display:flex; gap:8px; }
+    input, select, button { font-size:14px; padding:8px 10px; border-radius:8px; border:1px solid #e5e7eb; }
+    .btn { background:var(--red); color:white; border:none; cursor:pointer; font-weight:700; }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; }
+    .small { font-size:13px; color:#374151; }
+    .console { margin-top:14px; background:#f3f4f6; padding:10px; border-radius:8px; height:170px; overflow:auto; font-family: monospace; font-size:12px; color:#111827; }
+    label { font-size:12px; color:#374151; margin-bottom:6px; display:block; }
+    footer { text-align:center; color:var(--muted); margin-top:10px; font-size:13px; }
+    .chip { background:#fef3f2; color:var(--red); padding:6px 8px; border-radius:8px; font-weight:700; }
+    .success { color:green; font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="panel" role="application">
+      <div class="header">
+        <div>
+          <div class="brand">tick</div>
+          <div style="font-size:12px; color:var(--muted)">Limber Cross API — POS</div>
+        </div>
+        <div class="testing">TESTING</div>
+      </div>
+
+      <h1>Bem-vindo!</h1>
+      <p class="lead">Escolha as opções abaixo para continuar</p>
+
+      <div class="grid" aria-hidden="false">
+        <div class="tile" id="btn-realizar">Realizar Venda</div>
+        <div class="tile" id="btn-simplificada">Venda Simplificada</div>
+        <div class="tile" id="btn-leitura">Leitura Ingresso</div>
+
+        <div class="tile" id="btn-reimprimir">Reimprimir Comprovante</div>
+        <div class="tile" id="btn-consultar">Consultar Vendas</div>
+        <div class="tile" id="btn-aproximar">Aproximar Dispositivo</div>
+      </div>
+
+      <!-- Painel de fluxo -->
+      <div class="controls" aria-label="Painel de Ações">
+        <div>
+          <label>Autenticação (usuário/senha de testes)</label>
+          <div class="row">
+            <input id="api-user" placeholder="usuário" />
+            <input id="api-pass" placeholder="senha" type="password" />
+            <button id="btn-auth" class="btn">Autenticar</button>
+          </div>
+          <div style="margin-top:8px;"><span class="chip" id="token-state">Não autenticado</span></div>
+        </div>
+
+        <div>
+          <label>Produto / SKU</label>
+          <div class="row">
+            <input id="input-sku" placeholder="SKU" />
+            <input id="input-qty" placeholder="Qtd" type="number" value="1" min="1" style="width:90px" />
+            <button id="btn-consulta-sku" class="btn">Consultar SKU</button>
+          </div>
+          <div style="margin-top:8px">
+            <button id="btn-get-price" class="btn">Consultar Preço</button>
+            <button id="btn-get-stock" class="btn" style="margin-left:6px">Consultar Estoque</button>
+            <button id="btn-get-stock-agg" class="btn" style="margin-left:6px">Estoque Agrupado</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Calendário</label>
+          <div class="row">
+            <input id="input-calendar-id" placeholder="Calendar ID (opcional)" />
+            <button id="btn-calendar" class="btn">Consultar Calendário</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Reserva / Pagamento</label>
+          <div class="row">
+            <button id="btn-reserve" class="btn">Reservar</button>
+            <button id="btn-confirm-manual" class="btn">Confirmar (Manual)</button>
+            <button id="btn-generate-link" class="btn">Gerar Link</button>
+          </div>
+          <div style="margin-top:8px" class="row">
+            <button id="btn-pay-debit" class="btn">Pagar (Débito NFC)</button>
+            <button id="btn-pay-credit" class="btn">Pagar (Crédito NFC)</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Remarcar / Cancelar</label>
+          <div class="row">
+            <input id="input-reservation-id" placeholder="Reservation / Order ID" />
+            <button id="btn-remark" class="btn">Remarcar</button>
+            <button id="btn-request-cancel" class="btn">Pedir Cancelamento</button>
+          </div>
+          <div class="row" style="margin-top:8px">
+            <button id="btn-cancel-manual" class="btn">Cancelar Manual</button>
+            <button id="btn-cancel-acquirer" class="btn">Cancelar na Adquirente</button>
+            <button id="btn-check-acquirer" class="btn">Verificar Cancelamento Adquirente</button>
+          </div>
+        </div>
+
+        <div>
+          <label>Console</label>
+          <div id="console" class="console">Logs aparecerão aqui...</div>
+        </div>
+      </div>
+
+      <footer>
+        Limber <strong>Software</strong>
+      </footer>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
